@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DISCORD · XENEON EDGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────
+   DISCORD PANEL — CORSAIR XENEON EDGE (2560×720)
+
+   사용법:  ...?guild=서버ID   ← 주소 뒤에 붙이면 됩니다
+   또는 아래 CONFIG.guildId 를 직접 수정
+   ───────────────────────────────────────────── */
+
+:root{
+  --bg:#05060b; --panel:rgba(255,255,255,.028); --line:rgba(120,240,255,.14);
+  --cyan:#22e0ff; --magenta:#ff2f9e; --green:#3ddc84; --amber:#ffc857; --red:#ff5470;
+  --text:#e8f6fb; --dim:#7b8ea3;
+  --glow-c:0 0 .6rem rgba(34,224,255,.55), 0 0 1.8rem rgba(34,224,255,.22);
+  --glow-m:0 0 .6rem rgba(255,47,158,.5),  0 0 1.8rem rgba(255,47,158,.2);
+  --glow-g:0 0 .6rem rgba(61,220,132,.55), 0 0 1.6rem rgba(61,220,132,.25);
+}
+html{ font-size: clamp(8px, min(0.78vw, 2.78vh), 44px); }
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  height:100vh; overflow:hidden; color:var(--text);
+  background:
+    radial-gradient(120% 180% at 10% 50%, rgba(88,101,242,.13), transparent 55%),
+    radial-gradient(110% 170% at 90% 45%, rgba(255,47,158,.08), transparent 55%),
+    var(--bg);
+  font-family:'Noto Sans KR', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
+  font-weight:300; -webkit-font-smoothing:antialiased; user-select:none;
+}
+body::after{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px),
+    linear-gradient(rgba(34,224,255,.04) 1px, transparent 1px) 0 0/4rem 4rem,
+    linear-gradient(90deg, rgba(34,224,255,.04) 1px, transparent 1px) 0 0/4rem 4rem;
+  mix-blend-mode:screen;
+}
+
+.stage{ height:100vh; display:flex; gap:1rem; padding:1.1rem; }
+.panel{
+  position:relative; min-width:0; display:flex; flex-direction:column;
+  background:var(--panel); border:1px solid var(--line); border-radius:.9rem;
+  padding:1.15rem 1.3rem; overflow:hidden;
+}
+.panel::before,.panel::after{
+  content:''; position:absolute; width:1.6rem; height:1.6rem; pointer-events:none;
+  border:2px solid var(--cyan); opacity:.55;
+}
+.panel::before{ top:-1px; left:-1px; border-right:0; border-bottom:0; border-radius:.9rem 0 0 0; }
+.panel::after { bottom:-1px; right:-1px; border-left:0; border-top:0; border-radius:0 0 .9rem 0; }
+.panel--v::before,.panel--v::after{ border-color:var(--green); }
+.panel--o::before,.panel--o::after{ border-color:var(--magenta); }
+
+.p-srv{ flex:.72 1 0; } .p-voice{ flex:1.55 1 0; } .p-online{ flex:1.25 1 0; }
+
+.hd{
+  display:flex; align-items:center; gap:.55rem; flex:0 0 auto;
+  font-family:'Orbitron',sans-serif; font-weight:700; font-size:.72rem;
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cyan); text-shadow:var(--glow-c);
+}
+.panel--v .hd{ color:var(--green); text-shadow:var(--glow-g); }
+.panel--o .hd{ color:var(--magenta); text-shadow:var(--glow-m); }
+.hd .rule{ flex:1; height:1px; background:currentColor; opacity:.32; }
+.hd .tick{ font-family:'Noto Sans KR',sans-serif; font-weight:500; font-size:.62rem;
+  letter-spacing:.08em; color:var(--dim); text-shadow:none; }
+
+.body{ flex:1; min-height:0; display:flex; flex-direction:column; padding-top:1rem; }
+
+/* ── 서버 요약 ─────────────────────────── */
+.srv{ display:flex; flex-direction:column; justify-content:center; height:100%; }
+.srv-name{ font-size:1.5rem; font-weight:500; line-height:1.25; word-break:keep-all; }
+.big{ font-family:'Orbitron',sans-serif; font-weight:900; font-size:6.6rem; line-height:.9;
+  color:var(--green); text-shadow:0 0 1.4rem rgba(61,220,132,.5); margin-top:1rem; }
+.big-cap{ font-size:.9rem; color:var(--dim); letter-spacing:.06em; margin-top:.35rem; }
+.srv-sub{ margin-top:1.5rem; display:flex; flex-direction:column; gap:.55rem; }
+.stat{ display:flex; align-items:center; gap:.55rem; font-size:.92rem; }
+.stat b{ font-family:'Orbitron',sans-serif; font-weight:700; font-size:1.15rem; }
+.stat .lb{ color:var(--dim); }
+.dot{ width:.55rem; height:.55rem; border-radius:50%; flex:0 0 auto; }
+.dot.on{ background:var(--green); box-shadow:var(--glow-g); }
+.dot.talk{ background:var(--cyan); box-shadow:var(--glow-c); }
+
+/* ── 음성 채널 ─────────────────────────── */
+.vlist{ display:flex; flex-direction:column; gap:.6rem; overflow:hidden; height:100%; }
+.vch{
+  flex:0 0 auto; border-radius:.55rem; padding:.6rem .8rem;
+  border:1px solid rgba(61,220,132,.22); background:rgba(61,220,132,.05);
+}
+.vch.empty{ border-color:rgba(255,255,255,.05); background:rgba(255,255,255,.02); opacity:.5; }
+.vch-hd{ display:flex; align-items:center; gap:.45rem; font-size:.82rem; color:var(--green);
+  letter-spacing:.04em; margin-bottom:.55rem; }
+.vch.empty .vch-hd{ color:var(--dim); }
+.vch-hd svg{ width:1rem; height:1rem; flex:0 0 auto; }
+.vch-hd .n{ font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.vch-hd .c{ margin-left:auto; font-family:'Orbitron',sans-serif; font-weight:700; font-size:.75rem; }
+
+.mem{ display:flex; flex-wrap:wrap; gap:.5rem; }
+.chip{
+  display:flex; align-items:center; gap:.45rem; padding:.32rem .6rem .32rem .32rem;
+  border-radius:2rem; background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.07); font-size:.88rem; max-width:100%;
+}
+.chip.live{ border-color:var(--green); box-shadow:0 0 .55rem rgba(61,220,132,.35);
+  background:rgba(61,220,132,.1); }
+.chip.muted{ opacity:.5; }
+.av{ width:1.5rem; height:1.5rem; border-radius:50%; flex:0 0 auto; object-fit:cover;
+  background:rgba(255,255,255,.1); }
+.chip.live .av{ box-shadow:0 0 0 2px var(--green); animation:ring 1.8s ease-in-out infinite; }
+@keyframes ring{ 0%,100%{ box-shadow:0 0 0 2px var(--green) }
+                 50%{ box-shadow:0 0 0 2px var(--green), 0 0 .7rem rgba(61,220,132,.8) } }
+.nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:9rem; }
+.ic{ width:.95rem; height:.95rem; flex:0 0 auto; color:var(--red); }
+
+/* ── 온라인 멤버 ───────────────────────── */
+.olist{ display:flex; flex-wrap:wrap; align-content:flex-start; gap:.5rem;
+  overflow:hidden; height:100%; }
+.omem{ display:flex; align-items:center; gap:.45rem; padding:.35rem .7rem .35rem .35rem;
+  border-radius:2rem; background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06); font-size:.86rem; }
+.omem .sd{ width:.5rem; height:.5rem; border-radius:50%; flex:0 0 auto; }
+.sd.online{ background:var(--green); } .sd.idle{ background:var(--amber); }
+.sd.dnd{ background:var(--red); }
+
+.more{ font-size:.78rem; color:var(--dim); align-self:center; padding:.4rem .3rem; }
+
+/* ── 안내 / 오류 ───────────────────────── */
+.msg{ height:100%; display:flex; flex-direction:column; justify-content:center;
+  gap:.7rem; text-align:left; }
+.msg h2{ font-size:1.45rem; font-weight:500; color:var(--amber); }
+.msg p{ font-size:.95rem; color:var(--dim); line-height:1.65; }
+.msg code{ font-family:'Orbitron',ui-monospace,monospace; font-size:.85rem;
+  color:var(--cyan); background:rgba(34,224,255,.09); padding:.15rem .45rem;
+  border-radius:.25rem; word-break:break-all; }
+.setup{ position:fixed; inset:1.1rem; z-index:12; display:grid; place-items:center;
+  background:radial-gradient(80% 120% at 50% 50%, #101a34, #05060b 70%);
+  border-radius:.9rem; border:1px solid var(--line); padding:2rem; }
+.setup[hidden]{ display:none; }
+.setup-in{ max-width:52rem; }
+.setup h1{ font-family:'Orbitron',sans-serif; font-weight:900; font-size:2rem;
+  color:var(--cyan); text-shadow:var(--glow-c); letter-spacing:.06em; }
+.setup ol{ margin:1.2rem 0 0 1.2rem; font-size:1rem; line-height:2; color:var(--text); }
+.setup .hint{ margin-top:1.2rem; font-size:.85rem; color:var(--dim); }
+
+@media (max-aspect-ratio: 16/9){
+  .stage{ flex-direction:column; }
+  .big{ font-size:4.2rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <section class="panel p-srv">
+    <div class="hd"><span>Server</span><i class="rule"></i><span class="tick" id="upd">–</span></div>
+    <div class="body">
+      <div class="srv" id="srv">
+        <div class="srv-name" id="srvName">불러오는 중…</div>
+        <div class="big" id="cntOnline">–</div>
+        <div class="big-cap">명 접속 중</div>
+        <div class="srv-sub">
+          <div class="stat"><i class="dot talk"></i><b id="cntVoice">0</b><span class="lb">명 음성 채널</span></div>
+          <div class="stat"><i class="dot on"></i><b id="cntTalk">0</b><span class="lb">명 대화 가능 상태</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel panel--v p-voice">
+    <div class="hd"><span>Voice</span><i class="rule"></i><span class="tick">초록 = 마이크 켜짐</span></div>
+    <div class="body"><div class="vlist" id="vlist"></div></div>
+  </section>
+
+  <section class="panel panel--o p-online">
+    <div class="hd"><span>Online</span><i class="rule"></i><span class="tick" id="onlineTick"></span></div>
+    <div class="body"><div class="olist" id="olist"></div></div>
+  </section>
+
+</div>
+
+<div class="setup" id="setup" hidden>
+  <div class="setup-in">
+    <h1>DISCORD PANEL</h1>
+    <ol>
+      <li>디스코드 <b>서버 설정 → 위젯</b>에서 <b>“서버 위젯 활성화”</b>를 켭니다</li>
+      <li>같은 화면에서 <b>서버 ID</b>를 복사합니다</li>
+      <li>이 페이지 주소 뒤에 <code>?guild=서버ID</code> 를 붙여서 여세요</li>
+    </ol>
+    <p class="hint">예) https://아이디.github.io/edge/discord.html<b style="color:#22e0ff">?guild=123456789012345678</b><br>
+    또는 파일 안 <code>CONFIG.guildId</code> 값을 직접 채워도 됩니다.</p>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════ */
+const CONFIG = {
+  guildId: '1205519957979430942',   // 원준님 서버. 주소에 ?guild=... 를 붙이면 그쪽이 우선
+  refreshSeconds: 20,     // 갱신 주기
+  maxOnline: 40           // 온라인 목록에 표시할 최대 인원
+};
+
+const qs = new URLSearchParams(location.search);
+const GUILD = (qs.get('guild') || CONFIG.guildId || '').trim();
+
+/* ── 아이콘 ── */
+const SW = 'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"';
+const IC = {
+  speaker:`<svg viewBox="0 0 24 24" ${SW}><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg>`,
+  micOff: `<svg viewBox="0 0 24 24" ${SW}><path d="M2 2l20 20"/><path d="M9 9v3a3 3 0 0 0 5.1 2.1"/><path d="M15 10V6a3 3 0 0 0-5.7-1.3"/><path d="M19 10a7 7 0 0 1-1 3.6M5 10a7 7 0 0 0 10.5 6"/><path d="M12 19v3"/></svg>`,
+  headOff:`<svg viewBox="0 0 24 24" ${SW}><path d="M2 2l20 20"/><path d="M4 15v-3a8 8 0 0 1 12.5-6.6M20 12v3"/><path d="M4 15a2 2 0 0 0 2 2h1v-4H6a2 2 0 0 0-2 2ZM20 15a2 2 0 0 0-2-2h-1v4h1"/></svg>`
+};
+
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const p2  = n => String(n).padStart(2,'0');
+
+function showMessage(title, html){
+  document.querySelector('.p-voice .body').innerHTML =
+    `<div class="msg"><h2>${title}</h2><p>${html}</p></div>`;
+  document.getElementById('olist').innerHTML = '';
+  document.getElementById('srvName').textContent = '연결되지 않음';
+  document.getElementById('cntOnline').textContent = '–';
+  document.getElementById('cntVoice').textContent  = '0';
+  document.getElementById('cntTalk').textContent   = '0';
+  document.getElementById('onlineTick').textContent = '';
+}
+
+async function load(){
+  if(!GUILD){ document.getElementById('setup').hidden = false; return; }
+
+  try{
+    const r = await fetch(`https://discord.com/api/guilds/${encodeURIComponent(GUILD)}/widget.json`,
+                          { cache:'no-store' });
+    if(!r.ok){
+      if(r.status === 403) showMessage('서버 위젯이 꺼져 있습니다',
+        '디스코드 <b>서버 설정 → 위젯</b>에서 “서버 위젯 활성화”를 켜주세요.<br>관리자 권한이 필요합니다.');
+      else if(r.status === 404) showMessage('서버를 찾을 수 없습니다',
+        `서버 ID <code>${esc(GUILD)}</code> 를 다시 확인해 주세요.`);
+      else showMessage('불러오지 못했습니다', `디스코드 응답 코드 ${r.status}`);
+      return;
+    }
+    render(await r.json());
+  }catch(e){
+    showMessage('연결할 수 없습니다',
+      '인터넷 연결을 확인하거나, 서버 위젯이 켜져 있는지 확인해 주세요.');
+  }
+}
+
+function render(d){
+  // 서버 요약
+  document.getElementById('srvName').textContent = d.name || '이름 없음';
+  document.getElementById('cntOnline').textContent = d.presence_count ?? (d.members||[]).length;
+
+  const members  = d.members || [];
+  const channels = d.channels || [];
+  const inVoice  = members.filter(m => m.channel_id);
+  const talking  = inVoice.filter(m => !m.mute && !m.self_mute && !m.deaf && !m.self_deaf);
+
+  document.getElementById('cntVoice').textContent = inVoice.length;
+  document.getElementById('cntTalk').textContent  = talking.length;
+
+  // 음성 채널 — 사람이 있는 채널을 위로
+  const byCh = new Map(channels.map(c => [c.id, []]));
+  inVoice.forEach(m => { if(byCh.has(m.channel_id)) byCh.get(m.channel_id).push(m); });
+
+  const sorted = channels.slice().sort((a,b)=>
+    (byCh.get(b.id).length - byCh.get(a.id).length) || (a.position - b.position));
+
+  document.getElementById('vlist').innerHTML = sorted.length
+    ? sorted.map(c=>{
+        const ms = byCh.get(c.id);
+        return `<div class="vch ${ms.length ? '' : 'empty'}">
+          <div class="vch-hd">${IC.speaker}<span class="n">${esc(c.name)}</span>
+            <span class="c">${ms.length}</span></div>
+          ${ms.length ? `<div class="mem">${ms.map(chip).join('')}</div>` : ''}
+        </div>`;
+      }).join('')
+    : `<div class="msg"><h2>음성 채널이 없습니다</h2>
+        <p>위젯에 노출된 음성 채널이 없거나, 위젯 설정에서 채널이 선택되지 않았습니다.</p></div>`;
+
+  // 온라인 멤버
+  const rank = { online:0, idle:1, dnd:2 };
+  const on = members.slice().sort((a,b)=>
+    (rank[a.status] ?? 3) - (rank[b.status] ?? 3) ||
+    (a.username||'').localeCompare(b.username||''));
+
+  const shown = on.slice(0, CONFIG.maxOnline);
+  document.getElementById('olist').innerHTML =
+    shown.map(m=>`<div class="omem"><img class="av" src="${esc(m.avatar_url||'')}" alt=""
+       onerror="this.style.visibility='hidden'"><i class="sd ${esc(m.status||'online')}"></i>
+       <span class="nm">${esc(m.username||'?')}</span></div>`).join('')
+    + (on.length > shown.length ? `<div class="more">외 ${on.length - shown.length}명</div>` : '');
+
+  document.getElementById('onlineTick').textContent = `${on.length}명 표시`;
+
+  const t = new Date();
+  document.getElementById('upd').textContent = `${p2(t.getHours())}:${p2(t.getMinutes())} 갱신`;
+}
+
+function chip(m){
+  const mic  = m.mute || m.self_mute;
+  const head = m.deaf || m.self_deaf;
+  const live = !mic && !head;
+  return `<div class="chip ${live ? 'live' : 'muted'}">
+    <img class="av" src="${esc(m.avatar_url||'')}" alt="" onerror="this.style.visibility='hidden'">
+    <span class="nm">${esc(m.username||'?')}</span>
+    ${head ? IC.headOff.replace('<svg','<svg class="ic"') :
+      mic  ? IC.micOff .replace('<svg','<svg class="ic"') : ''}
+  </div>`;
+}
+
+load();
+setInterval(load, CONFIG.refreshSeconds * 1000);
+</script>
+</body>
+</html>
